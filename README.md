@@ -23,7 +23,7 @@
 
 ## Overview
 
-**Simple Restaurant Cashier** is a lightweight point-of-sale application for small restaurants. It runs entirely server-side using Go's standard library (`net/http`) and renders pages via Go HTML Templates. All data is stored locally in a JSON file — no MySQL, PostgreSQL, or any other database engine is required.
+**Reshier** is a lightweight point-of-sale application for small restaurants. It runs entirely server-side using Go's standard library (`net/http`) and renders pages via Go HTML Templates. All data is stored locally in a JSON file — no MySQL, PostgreSQL, or any other database engine is required.
 
 This project also demonstrates the manual implementation of **sorting and searching algorithms** (without using `sort.Slice` from the standard library) as a learning exercise.
 
