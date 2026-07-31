@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"simple-restaurant-cashier/models"
+	"reshier/models"
 	"strings"
 )
 

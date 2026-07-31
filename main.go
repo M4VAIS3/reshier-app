@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"simple-restaurant-cashier/controllers"
-	"simple-restaurant-cashier/models"
+	"reshier/controllers"
+	"reshier/models"
 	"log"
 	"net/http"
 )

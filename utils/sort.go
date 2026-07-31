@@ -1,6 +1,6 @@
 package utils
 
-import "simple-restaurant-cashier/models"
+import "reshier/models"
 
 // Selection Sort berdasarkan Kode Barang
 func UrutkanKodeBarang(ascending bool) {

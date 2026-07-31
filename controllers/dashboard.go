@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"html/template"
-	"simple-restaurant-cashier/models"
-	"simple-restaurant-cashier/utils"
+	"reshier/models"
+	"reshier/utils"
 	"net/http"
 	"time"
 )

@@ -3,8 +3,8 @@ package controllers
 import (
 	"fmt"
 	"html/template"
-	"simple-restaurant-cashier/models"
-	"simple-restaurant-cashier/utils"
+	"reshier/models"
+	"reshier/utils"
 	"net/http"
 	"strconv"
 	"time"
