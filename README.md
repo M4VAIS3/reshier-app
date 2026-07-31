@@ -1,4 +1,4 @@
-# Simple Restaurant Cashier
+# Reshier - Simple Restaurant Cashier App
 
 > A web-based restaurant cashier application built with **Go (net/http)**. No external frameworks, no external database, and no third-party Go dependencies beyond bundled UI libraries.
 
