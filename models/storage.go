@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"sync"
 
@@ -10,33 +11,49 @@ import (
 )
 
 var (
-	db   *sql.DB
-	once sync.Once
+	db      *sql.DB
+	dbErr   error // simpan error permanen dari InitDB
+	once    sync.Once
 )
 
 // InitDB menginisialisasi koneksi PostgreSQL (singleton).
-// Dipanggil sekali saat aplikasi start atau per-request di Vercel.
 func InitDB() error {
-	var initErr error
 	once.Do(func() {
 		dsn := os.Getenv("DATABASE_URL")
 		if dsn == "" {
-			initErr = fmt.Errorf("DATABASE_URL environment variable tidak di-set")
+			dbErr = fmt.Errorf("DATABASE_URL environment variable tidak di-set")
+			log.Println("[DB ERROR]", dbErr)
 			return
 		}
-		db, initErr = sql.Open("postgres", dsn)
-		if initErr != nil {
+		log.Println("[DB] Membuka koneksi ke PostgreSQL...")
+
+		var err error
+		db, err = sql.Open("postgres", dsn)
+		if err != nil {
+			dbErr = fmt.Errorf("sql.Open gagal: %w", err)
+			log.Println("[DB ERROR]", dbErr)
 			return
 		}
-		db.SetMaxOpenConns(10)
-		db.SetMaxIdleConns(5)
-		if initErr = db.Ping(); initErr != nil {
-			initErr = fmt.Errorf("gagal konek ke database: %w", initErr)
+
+		db.SetMaxOpenConns(5)
+		db.SetMaxIdleConns(2)
+
+		if err = db.Ping(); err != nil {
+			dbErr = fmt.Errorf("db.Ping() gagal: %w", err)
+			log.Println("[DB ERROR]", dbErr)
+			db = nil
 			return
 		}
-		initErr = createTables()
+
+		log.Println("[DB] Koneksi berhasil! Membuat tabel...")
+		if err = createTables(); err != nil {
+			dbErr = fmt.Errorf("createTables() gagal: %w", err)
+			log.Println("[DB ERROR]", dbErr)
+			return
+		}
+		log.Println("[DB] Siap!")
 	})
-	return initErr
+	return dbErr
 }
 
 // GetDB mengembalikan instance DB yang sudah diinisialisasi.

@@ -1,15 +1,25 @@
 // Package handler adalah entry point untuk Vercel Go serverless function.
-// Vercel akan memanggil fungsi Handler(w, r) untuk setiap HTTP request.
 package handler
 
 import (
+	"log"
 	"net/http"
 	"reshier/controllers"
+	"runtime/debug"
 )
 
-// Handler adalah fungsi yang dipanggil Vercel untuk setiap request.
-// Semua routing didefinisikan di sini — mirip main.go tapi tanpa ListenAndServe.
+// Handler adalah fungsi yang dipanggil Vercel untuk setiap HTTP request.
 func Handler(w http.ResponseWriter, r *http.Request) {
+	// Recover dari panic agar error terlihat di logs, bukan FUNCTION_INVOCATION_FAILED
+	defer func() {
+		if rec := recover(); rec != nil {
+			log.Printf("[PANIC] %v\n%s", rec, debug.Stack())
+			http.Error(w, "Internal server error (panic recovered)", http.StatusInternalServerError)
+		}
+	}()
+
+	log.Printf("[REQUEST] %s %s", r.Method, r.URL.Path)
+
 	mux := http.NewServeMux()
 
 	// === Dashboard ===
@@ -30,7 +40,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// === Laporan ===
 	mux.HandleFunc("/laporan", controllers.LaporanHarian)
 
-	// === Static Files (untuk local dev; di Vercel dilayani lewat vercel.json routes) ===
+	// === Static Files ===
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	mux.ServeHTTP(w, r)
