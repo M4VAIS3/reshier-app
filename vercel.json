@@ -1,5 +1,5 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index.go" }
-  ]
+  "buildCommand": "go build -o /tmp/reshier-server .",
+  "outputDirectory": ".",
+  "framework": null
 }
