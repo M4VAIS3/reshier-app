@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// LaporanData adalah data yang dikirim ke template laporan.
 type LaporanData struct {
 	TanggalHari     string
 	OmzetHarian     int
@@ -20,6 +21,7 @@ type LaporanData struct {
 	StokKritis      []models.Barang
 }
 
+// GrafikHarian adalah data per-hari untuk grafik omzet mingguan.
 type GrafikHarian struct {
 	Hari  string
 	Total int
@@ -27,6 +29,23 @@ type GrafikHarian struct {
 }
 
 func LaporanHarian(w http.ResponseWriter, r *http.Request) {
+	if err := models.InitDB(); err != nil {
+		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	barang, err := models.DBGetAllBarang()
+	if err != nil {
+		http.Error(w, "Gagal ambil data barang: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	transaksi, err := models.DBGetAllTransaksi()
+	if err != nil {
+		http.Error(w, "Gagal ambil data transaksi: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	now := time.Now()
 	today := now.Format("2006-01-02")
 	thisMonth := now.Format("2006-01")
@@ -35,7 +54,7 @@ func LaporanHarian(w http.ResponseWriter, r *http.Request) {
 		TanggalHari: now.Format("02 January 2006"),
 	}
 
-	for _, trx := range models.DataTransaksi {
+	for _, trx := range transaksi {
 		tDate := trx.Waktu.Format("2006-01-02")
 		tMonth := trx.Waktu.Format("2006-01")
 
@@ -58,7 +77,7 @@ func LaporanHarian(w http.ResponseWriter, r *http.Request) {
 		dayStr := day.Format("2006-01-02")
 		dayLabel := day.Format("02/01")
 		total := 0
-		for _, trx := range models.DataTransaksi {
+		for _, trx := range transaksi {
 			if trx.Waktu.Format("2006-01-02") == dayStr {
 				total += trx.Total
 			}
@@ -70,9 +89,9 @@ func LaporanHarian(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	data.BarangTerlaris = utils.BarangTerlaris(5)
+	data.BarangTerlaris = utils.BarangTerlaris(transaksi, 5)
 
-	for _, b := range models.DataBarang {
+	for _, b := range barang {
 		if b.Stok <= 5 {
 			data.StokKritis = append(data.StokKritis, b)
 		}

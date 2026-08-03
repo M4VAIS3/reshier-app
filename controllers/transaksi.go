@@ -3,38 +3,48 @@ package controllers
 import (
 	"fmt"
 	"html/template"
+	"net/http"
 	"reshier/models"
 	"reshier/utils"
-	"net/http"
 	"strconv"
 	"time"
 )
 
 func TampilkanTransaksi(w http.ResponseWriter, r *http.Request) {
-	filter := r.URL.Query().Get("filter")
-	var hasil []models.Transaksi
-
-	if filter != "" {
-		hasil = utils.FilterTransaksiByTime(filter)
-	} else {
-		hasil = models.DataTransaksi
+	if err := models.InitDB(); err != nil {
+		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	// Balik urutan terbaru di atas
+	semua, err := models.DBGetAllTransaksi()
+	if err != nil {
+		http.Error(w, "Gagal ambil transaksi: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	filter := r.URL.Query().Get("q")
+	hasil := semua
+	if filter != "" {
+		hasil = utils.FilterTransaksiByTime(semua, filter)
+	}
+
+	// Balik urutan agar terbaru di atas (DB sudah ORDER BY waktu DESC, balik lagi agar search tetap konsisten)
 	reversed := make([]models.Transaksi, len(hasil))
-	for i, v := range hasil {
-		reversed[len(hasil)-1-i] = v
+	for i, t := range hasil {
+		reversed[len(hasil)-1-i] = t
+	}
+	// Sudah DESC dari DB, tidak perlu balik lagi
+	reversed = hasil
+
+	total := 0
+	for _, t := range hasil {
+		total += t.Total
 	}
 
 	type PageData struct {
 		Transaksi []models.Transaksi
 		Filter    string
 		Total     int
-	}
-
-	total := 0
-	for _, t := range hasil {
-		total += t.Total
 	}
 
 	tmpl, err := template.New("transaksi.html").Funcs(utils.TemplateFuncs).ParseFiles("views/transaksi.html")
@@ -46,20 +56,38 @@ func TampilkanTransaksi(w http.ResponseWriter, r *http.Request) {
 }
 
 func TambahTransaksi(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		var transaksi models.Transaksi
-		now := time.Now()
-		transaksi.ID = fmt.Sprintf("TRX-%s-%03d", now.Format("20060102"), len(models.DataTransaksi)+1)
-		transaksi.Waktu = now
+	if err := models.InitDB(); err != nil {
+		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	if r.Method == "POST" {
 		bayar, _ := strconv.Atoi(r.FormValue("bayar"))
+
+		// Ambil semua barang dari DB untuk lookup
+		semuaBarang, err := models.DBGetAllBarang()
+		if err != nil {
+			http.Error(w, "Gagal ambil data barang: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		now := time.Now()
+		count, err := models.DBCountTransaksi()
+		if err != nil {
+			http.Error(w, "Gagal generate ID transaksi: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var transaksi models.Transaksi
+		transaksi.ID = fmt.Sprintf("TRX-%s-%03d", now.Format("20060102"), count+1)
+		transaksi.Waktu = now
 
 		for i := 0; i < 20; i++ {
 			kode := r.FormValue("kode" + strconv.Itoa(i))
 			if kode == "" {
 				continue
 			}
-			idx := utils.CariBarangSequential(kode)
+			idx := utils.CariBarangSequential(semuaBarang, kode)
 			if idx == -1 {
 				continue
 			}
@@ -67,19 +95,16 @@ func TambahTransaksi(w http.ResponseWriter, r *http.Request) {
 			if jumlah <= 0 {
 				continue
 			}
-			if jumlah > models.DataBarang[idx].Stok {
+			if jumlah > semuaBarang[idx].Stok {
 				continue
 			}
 
-			models.DataBarang[idx].Stok -= jumlah
-			models.DataBarang[idx].StokKritis = models.DataBarang[idx].Stok <= 5
-
 			item := models.ItemTransaksi{
-				KodeBarang: models.DataBarang[idx].Kode,
-				NamaBarang: models.DataBarang[idx].Nama,
-				Harga:      models.DataBarang[idx].Harga,
+				KodeBarang: semuaBarang[idx].Kode,
+				NamaBarang: semuaBarang[idx].Nama,
+				Harga:      semuaBarang[idx].Harga,
 				Jumlah:     jumlah,
-				Subtotal:   models.DataBarang[idx].Harga * jumlah,
+				Subtotal:   semuaBarang[idx].Harga * jumlah,
 			}
 			transaksi.Items = append(transaksi.Items, item)
 			transaksi.Total += item.Subtotal
@@ -88,33 +113,44 @@ func TambahTransaksi(w http.ResponseWriter, r *http.Request) {
 		if len(transaksi.Items) > 0 {
 			transaksi.Bayar = bayar
 			transaksi.Kembalian = bayar - transaksi.Total
-			models.DataTransaksi = append(models.DataTransaksi, transaksi)
-			models.SaveData()
+
+			if err := models.DBSaveTransaksi(transaksi); err != nil {
+				http.Error(w, "Gagal simpan transaksi: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
 			http.Redirect(w, r, "/transaksi/detail?id="+transaksi.ID, http.StatusSeeOther)
 		} else {
 			http.Redirect(w, r, "/transaksi/tambah", http.StatusSeeOther)
 		}
 	} else {
+		// GET: tampilkan form kasir dengan daftar barang
+		semuaBarang, err := models.DBGetAllBarang()
+		if err != nil {
+			http.Error(w, "Gagal ambil data barang: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		tmpl, err := template.New("tambah_transaksi.html").Funcs(utils.TemplateFuncs).ParseFiles("views/tambah_transaksi.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		tmpl.Execute(w, models.DataBarang)
+		tmpl.Execute(w, semuaBarang)
 	}
 }
 
 func DetailTransaksi(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
-	var found *models.Transaksi
-
-	for i := range models.DataTransaksi {
-		if models.DataTransaksi[i].ID == id {
-			found = &models.DataTransaksi[i]
-			break
-		}
+	if err := models.InitDB(); err != nil {
+		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 
+	id := r.URL.Query().Get("id")
+	found, err := models.DBGetTransaksiByID(id)
+	if err != nil {
+		http.Error(w, "Gagal ambil detail transaksi: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 	if found == nil {
 		http.NotFound(w, r)
 		return

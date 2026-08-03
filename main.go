@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
-	"reshier/controllers"
-	"reshier/models"
 	"log"
 	"net/http"
+	"reshier/controllers"
+	"reshier/models"
 )
 
 func main() {
-	// Load data saat startup
-	if err := models.LoadData(); err != nil {
-		log.Println("Warning: gagal load data:", err)
+	// Inisialisasi koneksi database
+	if err := models.InitDB(); err != nil {
+		log.Fatal("Gagal konek ke database:", err)
 	}
-	fmt.Println("Data berhasil dimuat:", len(models.DataBarang), "barang,", len(models.DataTransaksi), "transaksi")
+	fmt.Println("✅ Database terhubung")
 
 	// === Dashboard ===
 	http.HandleFunc("/", controllers.Dashboard)
@@ -36,6 +36,6 @@ func main() {
 	// === Static Files ===
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-	fmt.Println("Server berjalan di http://localhost:8080")
+	fmt.Println("🚀 Server berjalan di http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
