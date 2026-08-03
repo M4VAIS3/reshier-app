@@ -1,3 +1,7 @@
+//go:build ignore
+// File ini hanya untuk local development. Jalankan dengan: go run main.go
+// Vercel mengabaikan file ini dan menggunakan api/index.go sebagai serverless handler.
+
 package main
 
 import (
