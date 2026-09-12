@@ -3,12 +3,23 @@
 package handler
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"reshier/controllers"
 	"runtime/debug"
+	"sync"
 )
+
+//go:embed all:views
+var viewsFS embed.FS
+
+//go:embed all:static
+var staticFS embed.FS
+
+var initOnce sync.Once
 
 // Handler adalah fungsi serverless yang dipanggil Vercel.
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -20,6 +31,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Server error: %v", rec), http.StatusInternalServerError)
 		}
 	}()
+
+	// Set embedded FS untuk controllers (sekali saja)
+	initOnce.Do(func() {
+		controllers.ViewsFS = viewsFS
+	})
 
 	log.Printf("[REQUEST] %s %s", r.Method, r.URL.Path)
 
@@ -43,8 +59,13 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// === Laporan ===
 	mux.HandleFunc("/laporan", controllers.LaporanHarian)
 
-	// === Static Files ===
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	// === Static Files (dari embed) ===
+	staticSub, err := fs.Sub(staticFS, "static")
+	if err != nil {
+		http.Error(w, "Static FS error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticSub))))
 
 	mux.ServeHTTP(w, r)
 }

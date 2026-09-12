@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tambah Barang — Reshier</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wrapper">
+        <div class="logo-mark">SC</div>
+        <div class="logo-text">
+          <span class="logo-name">Simple Restaurant</span>
+          <span class="logo-sub">Cashier v2.0</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Menu Utama</span>
+      <a href="/" class="nav-item">
+        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+        Dashboard
+      </a>
+      <span class="nav-section-label">Inventori</span>
+      <a href="/barang" class="nav-item">
+        <i data-lucide="package" class="nav-icon"></i>
+        Data Barang
+      </a>
+      <a href="/barang/tambah" class="nav-item active">
+        <i data-lucide="plus-circle" class="nav-icon"></i>
+        Tambah Barang
+      </a>
+      <span class="nav-section-label">Transaksi</span>
+      <a href="/transaksi/tambah" class="nav-item">
+        <i data-lucide="shopping-cart" class="nav-icon"></i>
+        Kasir
+      </a>
+      <a href="/transaksi" class="nav-item">
+        <i data-lucide="list" class="nav-icon"></i>
+        Riwayat Transaksi
+      </a>
+      <span class="nav-section-label">Analitik</span>
+      <a href="/laporan" class="nav-item">
+        <i data-lucide="bar-chart-3" class="nav-icon"></i>
+        Laporan
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-clock-wrapper">
+        <i data-lucide="clock" class="sidebar-clock-icon"></i>
+        <p class="sidebar-clock" id="clock">--:--:--</p>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle Menu" aria-expanded="false">
+          <i data-lucide="menu"></i>
+        </button>
+        <div>
+          <h1 class="page-title">
+            <i data-lucide="plus-circle" class="page-title-icon"></i>
+            Tambah Barang
+          </h1>
+          <p class="page-subtitle">Daftarkan produk baru ke inventori</p>
+        </div>
+      </div>
+      <a href="/barang" class="btn btn-ghost">
+        <i data-lucide="arrow-left"></i>
+        Kembali
+      </a>
+    </div>
+
+    <div class="page-content">
+      <div class="card fade-in" style="max-width:600px;margin:0 auto;">
+        <div class="card-header">
+          <span class="card-title">
+            <i data-lucide="clipboard-list" class="card-icon"></i>
+            Informasi Produk
+          </span>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/barang/tambah" id="form-tambah">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="kode">Kode Barang <span style="color:var(--accent-red)">*</span></label>
+                <input type="text" id="kode" name="kode" class="form-control"
+                  placeholder="Contoh: BRG001" required autocomplete="off"
+                  style="text-transform:uppercase;">
+                <p class="form-hint">Kode unik, tidak boleh sama dengan yang sudah ada</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="kategori">Kategori</label>
+                <select id="kategori" name="kategori" class="form-control">
+                  <option value="">-- Pilih Kategori --</option>
+                  <option value="Makanan">Makanan</option>
+                  <option value="Minuman">Minuman</option>
+                  <option value="Snack">Snack</option>
+                  <option value="Dessert">Dessert</option>
+                </select>
+                <p class="form-hint">Pilih kategori yang sesuai</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="nama">Nama Produk <span style="color:var(--accent-red)">*</span></label>
+              <input type="text" id="nama" name="nama" class="form-control"
+                placeholder="Masukkan nama produk" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="harga">Harga Jual (Rp) <span style="color:var(--accent-red)">*</span></label>
+                <input type="number" id="harga" name="harga" class="form-control"
+                  placeholder="0" min="0" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="stok">Stok Awal <span style="color:var(--accent-red)">*</span></label>
+                <input type="number" id="stok" name="stok" class="form-control"
+                  placeholder="0" min="0" required>
+                <p class="form-hint" id="stok-hint"></p>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+              <a href="/barang" class="btn btn-ghost">Batal</a>
+              <button type="submit" class="btn btn-primary">
+                <i data-lucide="save"></i>
+                Simpan Barang
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/js/lucide.min.js"></script>
+<script src="/static/js/sidebar.js"></script>
+<script>
+lucide.createIcons();
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+setInterval(updateClock, 1000); updateClock();
+
+// Auto uppercase kode
+document.getElementById('kode').addEventListener('input', function() {
+  this.value = this.value.toUpperCase();
+});
+
+// Live stok hint
+const stokInput = document.getElementById('stok');
+const stokHint  = document.getElementById('stok-hint');
+stokInput.addEventListener('input', function() {
+  const v = parseInt(this.value) || 0;
+  if (v <= 5) {
+    stokHint.textContent = 'Stok rendah — akan ditandai kritis';
+    stokHint.style.color = 'var(--accent-red)';
+  } else if (v <= 15) {
+    stokHint.textContent = 'Stok sedang';
+    stokHint.style.color = 'var(--accent-orange)';
+  } else {
+    stokHint.textContent = 'Stok aman';
+    stokHint.style.color = 'var(--accent-green)';
+  }
+});
+
+// Kategori sudah di-hardcode sebagai <select> dropdown
+</script>
+</body>
+</html>

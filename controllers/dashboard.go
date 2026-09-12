@@ -1,10 +1,8 @@
 package controllers
 
 import (
-	"html/template"
 	"net/http"
 	"reshier/models"
-	"reshier/utils"
 	"time"
 )
 
@@ -63,7 +61,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 	data.TransaksiTerakhir = transaksi[:end]
 
-	tmpl, err := template.New("index.html").Funcs(utils.TemplateFuncs).ParseFiles("views/index.html")
+	tmpl, err := parseTemplate("index.html", "views/index.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

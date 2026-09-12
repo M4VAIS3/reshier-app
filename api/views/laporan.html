@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan &amp; Analitik — Reshier</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <script src="/static/js/chart.umd.min.js"></script>
+</head>
+
+<body>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="app-layout">
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-wrapper">
+          <div class="logo-mark">SC</div>
+          <div class="logo-text">
+            <span class="logo-name">Simple Restaurant</span>
+            <span class="logo-sub">Cashier v2.0</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <span class="nav-section-label">Menu Utama</span>
+        <a href="/" class="nav-item">
+          <i data-lucide="layout-dashboard" class="nav-icon"></i>
+          Dashboard
+        </a>
+        <span class="nav-section-label">Inventori</span>
+        <a href="/barang" class="nav-item">
+          <i data-lucide="package" class="nav-icon"></i>
+          Data Barang
+        </a>
+        <a href="/barang/tambah" class="nav-item">
+          <i data-lucide="plus-circle" class="nav-icon"></i>
+          Tambah Barang
+        </a>
+        <span class="nav-section-label">Transaksi</span>
+        <a href="/transaksi/tambah" class="nav-item">
+          <i data-lucide="shopping-cart" class="nav-icon"></i>
+          Kasir
+        </a>
+        <a href="/transaksi" class="nav-item">
+          <i data-lucide="list" class="nav-icon"></i>
+          Riwayat Transaksi
+        </a>
+        <span class="nav-section-label">Analitik</span>
+        <a href="/laporan" class="nav-item active">
+          <i data-lucide="bar-chart-3" class="nav-icon"></i>
+          Laporan
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-clock-wrapper">
+          <i data-lucide="clock" class="sidebar-clock-icon"></i>
+          <p class="sidebar-clock" id="clock">--:--:--</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle Menu" aria-expanded="false">
+            <i data-lucide="menu"></i>
+          </button>
+          <div>
+            <h1 class="page-title">
+              <i data-lucide="bar-chart-3" class="page-title-icon"></i>
+              Laporan &amp; Analitik
+            </h1>
+            <p class="page-subtitle">Periode: {{.TanggalHari}}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-content">
+
+        <!-- Stat Cards -->
+        <div class="stats-grid mb-3">
+          <div class="stat-card fade-in stat-card--green">
+            <div class="stat-header">
+              <span class="stat-label">Omzet Hari Ini</span>
+              <div class="stat-icon-wrap stat-icon-wrap--green">
+                <i data-lucide="calendar-check" class="stat-lucide"></i>
+              </div>
+            </div>
+            <div class="stat-value text-green" data-value="{{.OmzetHarian}}" id="omzet-harian">...</div>
+            <div class="stat-sub">{{.JmlTransHarian}} transaksi</div>
+          </div>
+
+          <div class="stat-card fade-in fade-in-delay-1 stat-card--blue">
+            <div class="stat-header">
+              <span class="stat-label">Omzet 7 Hari</span>
+              <div class="stat-icon-wrap stat-icon-wrap--blue">
+                <i data-lucide="calendar-range" class="stat-lucide"></i>
+              </div>
+            </div>
+            <div class="stat-value" data-value="{{.OmzetMingguan}}" id="omzet-mingguan">...</div>
+            <div class="stat-sub">7 hari terakhir</div>
+          </div>
+
+          <div class="stat-card fade-in fade-in-delay-2 stat-card--purple">
+            <div class="stat-header">
+              <span class="stat-label">Omzet Bulan Ini</span>
+              <div class="stat-icon-wrap stat-icon-wrap--purple">
+                <i data-lucide="calendar" class="stat-lucide"></i>
+              </div>
+            </div>
+            <div class="stat-value" data-value="{{.OmzetBulanan}}" id="omzet-bulanan">...</div>
+            <div class="stat-sub">{{.JmlTransBulanan}} transaksi</div>
+          </div>
+
+          <div
+            class="stat-card fade-in fade-in-delay-3 {{if .StokKritis}}stat-card--red{{else}}stat-card--green{{end}}">
+            <div class="stat-header">
+              <span class="stat-label">Stok Kritis</span>
+              <div class="stat-icon-wrap {{if .StokKritis}}stat-icon-wrap--red{{else}}stat-icon-wrap--green{{end}}">
+                <i data-lucide="{{if .StokKritis}}triangle-alert{{else}}shield-check{{end}}" class="stat-lucide"></i>
+              </div>
+            </div>
+            <div class="stat-value {{if .StokKritis}}text-red{{else}}text-green{{end}}">{{len .StokKritis}}</div>
+            <div class="stat-sub">Barang perlu restock</div>
+          </div>
+        </div>
+
+        <!-- Grid: Chart + Top Barang -->
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:18px;">
+
+          <!-- Grafik 7 Hari -->
+          <div class="card fade-in">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="area-chart" class="card-icon"></i>
+                Grafik Omzet 7 Hari Terakhir
+              </span>
+            </div>
+            <div class="card-body">
+              <div class="chart-container">
+                <canvas id="chartOmzet"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top 5 Terlaris -->
+          <div class="card fade-in fade-in-delay-1">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="award" class="card-icon"></i>
+                Top 5 Terlaris
+              </span>
+            </div>
+            <div class="card-body" style="padding:12px;">
+              {{if .BarangTerlaris}}
+              {{range $i, $b := .BarangTerlaris}}
+              <div
+                style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color);">
+                <div
+                  style="width:24px;height:24px;border-radius:50%;background:var(--accent-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;">
+                  {{inc $i}}
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <div
+                    style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    {{$b.NamaBarang}}</div>
+                  <div class="fs-xs text-muted">{{$b.TotalTerjual}} terjual</div>
+                </div>
+                <div style="font-weight:700;font-size:13px;color:var(--accent-green);"
+                  data-value="{{$b.TotalPendapatan}}" class="fmt-rp">...</div>
+              </div>
+              {{end}}
+              {{else}}
+              <div class="text-center text-muted" style="padding:28px 0;">
+                <i data-lucide="inbox" style="width:32px;height:32px;margin:0 auto 10px;display:block;opacity:0.4;"></i>
+                <p class="fs-sm">Belum ada data penjualan</p>
+              </div>
+              {{end}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Stok Kritis -->
+        {{if .StokKritis}}
+        <div class="card fade-in">
+          <div class="card-header">
+            <span class="card-title" style="color:var(--accent-red);">
+              <i data-lucide="triangle-alert" class="card-icon" style="color:var(--accent-red);"></i>
+              Daftar Barang Stok Kritis
+            </span>
+            <span class="badge badge-red">{{len .StokKritis}} barang</span>
+          </div>
+          <div class="table-container" style="border:none;border-radius:0;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Kode</th>
+                  <th>Nama</th>
+                  <th>Kategori</th>
+                  <th>Stok Tersisa</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{range .StokKritis}}
+                <tr>
+                  <td><span class="badge badge-purple">{{.Kode}}</span></td>
+                  <td style="font-weight:600;">{{.Nama}}</td>
+                  <td>{{if .Kategori}}<span class="badge badge-blue">{{.Kategori}}</span>{{else}}<span
+                      class="text-muted fs-xs">—</span>{{end}}</td>
+                  <td><span style="color:var(--accent-red);font-weight:800;font-size:15px;">{{.Stok}}</span></td>
+                  <td>
+                    <a href="/barang/edit?kode={{.Kode}}" class="btn btn-warning btn-sm">
+                      <i data-lucide="package-plus"></i>
+                      Restock
+                    </a>
+                  </td>
+                </tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {{end}}
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Data grafik dari Go (disimpan sebagai JSON agar tidak diparse sebagai JS) -->
+  <script type="application/json" id="grafik-data">
+    {"labels":[{{ range $i, $g := .GrafikMingguan }}{{ if $i }},{{ end }}"{{$g.Label}}"{{ end }}],"values":[{{ range $i, $g := .GrafikMingguan }}{{ if $i }},{{ end }}{{$g.Total}}{{ end }}]}
+  </script>
+
+  <script src="/static/js/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    function formatRp(n) {
+      return 'Rp ' + parseInt(n || 0).toLocaleString('id-ID');
+    }
+
+    // Format semua nilai currency
+    document.querySelectorAll('[data-value]').forEach(el => {
+      el.textContent = formatRp(el.dataset.value);
+    });
+    document.querySelectorAll('.fmt-rp').forEach(el => {
+      el.textContent = formatRp(el.dataset.value);
+    });
+
+    // Baca data grafik dari elemen JSON
+    const _gd = JSON.parse(document.getElementById('grafik-data').textContent);
+    const chartLabels = _gd.labels;
+    const chartData = _gd.values;
+
+    // Chart Omzet
+    const ctx = document.getElementById('chartOmzet').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartLabels,
+        datasets: [{
+          label: 'Omzet (Rp)',
+          data: chartData,
+          backgroundColor: chartData.map((v, i) =>
+            i === chartData.length - 1
+              ? 'rgba(246, 36, 64, 0.82)'
+              : 'rgba(246, 36, 64, 0.28)'
+          ),
+          borderColor: 'rgba(246, 36, 64, 1)',
+          borderWidth: 1,
+          borderRadius: 5,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => 'Rp ' + ctx.raw.toLocaleString('id-ID')
+            },
+            backgroundColor: '#FFF2DB',
+            borderColor: '#F0D9C4',
+            borderWidth: 1,
+            titleColor: '#1a0a0e',
+            bodyColor: '#5c3a44',
+            padding: 10,
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(246,36,64,0.06)' },
+            ticks: { color: '#9e7a87', font: { size: 11 } }
+          },
+          y: {
+            grid: { color: 'rgba(246,36,64,0.06)' },
+            ticks: {
+              color: '#9e7a87',
+              font: { size: 11 },
+              callback: v => 'Rp ' + v.toLocaleString('id-ID')
+            },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+  <script src="/static/js/lucide.min.js"></script>
+  <script src="/static/js/sidebar.js"></script>
+  <script>
+    lucide.createIcons();
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateClock, 1000); updateClock();
+  </script>
+</body>
+
+</html>

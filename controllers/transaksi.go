@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"reshier/models"
 	"reshier/utils"
@@ -47,7 +46,7 @@ func TampilkanTransaksi(w http.ResponseWriter, r *http.Request) {
 		Total     int
 	}
 
-	tmpl, err := template.New("transaksi.html").Funcs(utils.TemplateFuncs).ParseFiles("views/transaksi.html")
+	tmpl, err := parseTemplate("transaksi.html", "views/transaksi.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -130,7 +129,7 @@ func TambahTransaksi(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		tmpl, err := template.New("tambah_transaksi.html").Funcs(utils.TemplateFuncs).ParseFiles("views/tambah_transaksi.html")
+		tmpl, err := parseTemplate("tambah_transaksi.html", "views/tambah_transaksi.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -156,7 +155,7 @@ func DetailTransaksi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.New("detail_transaksi.html").Funcs(utils.TemplateFuncs).ParseFiles("views/detail_transaksi.html")
+	tmpl, err := parseTemplate("detail_transaksi.html", "views/detail_transaksi.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

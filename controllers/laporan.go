@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"html/template"
 	"net/http"
 	"reshier/models"
 	"reshier/utils"
@@ -97,7 +96,7 @@ func LaporanHarian(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tmpl, err := template.New("laporan.html").Funcs(utils.TemplateFuncs).ParseFiles("views/laporan.html")
+	tmpl, err := parseTemplate("laporan.html", "views/laporan.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

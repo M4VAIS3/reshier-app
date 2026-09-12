@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Barang — Reshier</title>
+  <meta name="description" content="Kelola data barang di Simple Cashier App">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wrapper">
+        <div class="logo-mark">SC</div>
+        <div class="logo-text">
+          <span class="logo-name">Simple Restaurant</span>
+          <span class="logo-sub">Cashier v2.0</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Menu Utama</span>
+      <a href="/" class="nav-item">
+        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+        Dashboard
+      </a>
+      <span class="nav-section-label">Inventori</span>
+      <a href="/barang" class="nav-item active">
+        <i data-lucide="package" class="nav-icon"></i>
+        Data Barang
+        {{if gt .StokKritis 0}}<span class="nav-badge">{{.StokKritis}}</span>{{end}}
+      </a>
+      <a href="/barang/tambah" class="nav-item">
+        <i data-lucide="plus-circle" class="nav-icon"></i>
+        Tambah Barang
+      </a>
+      <span class="nav-section-label">Transaksi</span>
+      <a href="/transaksi/tambah" class="nav-item">
+        <i data-lucide="shopping-cart" class="nav-icon"></i>
+        Kasir
+      </a>
+      <a href="/transaksi" class="nav-item">
+        <i data-lucide="list" class="nav-icon"></i>
+        Riwayat Transaksi
+      </a>
+      <span class="nav-section-label">Analitik</span>
+      <a href="/laporan" class="nav-item">
+        <i data-lucide="bar-chart-3" class="nav-icon"></i>
+        Laporan
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-clock-wrapper">
+        <i data-lucide="clock" class="sidebar-clock-icon"></i>
+        <p class="sidebar-clock" id="clock">--:--:--</p>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle Menu" aria-expanded="false">
+          <i data-lucide="menu"></i>
+        </button>
+        <div>
+          <h1 class="page-title">
+            <i data-lucide="package" class="page-title-icon"></i>
+            Data Barang
+          </h1>
+          <p class="page-subtitle">{{len .Barang}} produk ditemukan</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a href="/barang/tambah" class="btn btn-primary">
+          <i data-lucide="plus"></i>
+          Tambah Barang
+        </a>
+      </div>
+    </div>
+
+    <div class="page-content">
+      {{if gt .StokKritis 0}}
+      <div class="alert alert-warning mb-3 fade-in">
+        <i data-lucide="triangle-alert"></i>
+        <strong>{{.StokKritis}} barang</strong> memiliki stok kritis (≤ 5). Segera lakukan restock!
+      </div>
+      {{end}}
+
+      <!-- Filter Bar -->
+      <div class="card mb-3 fade-in">
+        <div class="card-body" style="padding:14px 20px;">
+          <form method="GET" action="/barang">
+            <div style="display:grid;grid-template-columns:1fr 180px 180px auto;gap:10px;align-items:end;">
+              <div class="form-group mb-0">
+                <div class="search-wrapper">
+                  <span class="search-icon">
+                    <i data-lucide="search"></i>
+                  </span>
+                  <input type="text" name="q" class="form-control search-input"
+                    placeholder="Cari nama, kode, atau kategori..."
+                    value="{{.Search}}" autocomplete="off">
+                </div>
+              </div>
+              <div class="form-group mb-0">
+                <select name="kategori" class="form-control">
+                  <option value="">Semua Kategori</option>
+                  {{range .KategoriList}}
+                  <option value="{{.}}" {{if eq $.Kategori .}}selected{{end}}>{{.}}</option>
+                  {{end}}
+                </select>
+              </div>
+              <div class="form-group mb-0">
+                <select name="sort" class="form-control">
+                  <option value="">Urutkan...</option>
+                  <option value="kode-asc"   {{if eq .Sort "kode-asc"}}selected{{end}}>Kode A→Z</option>
+                  <option value="kode-desc"  {{if eq .Sort "kode-desc"}}selected{{end}}>Kode Z→A</option>
+                  <option value="harga-asc"  {{if eq .Sort "harga-asc"}}selected{{end}}>Harga Termurah</option>
+                  <option value="harga-desc" {{if eq .Sort "harga-desc"}}selected{{end}}>Harga Termahal</option>
+                  <option value="stok-asc"   {{if eq .Sort "stok-asc"}}selected{{end}}>Stok Terkecil</option>
+                  <option value="stok-desc"  {{if eq .Sort "stok-desc"}}selected{{end}}>Stok Terbesar</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i data-lucide="filter"></i>
+                Terapkan
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card fade-in fade-in-delay-1">
+        <div class="table-container" style="border:none;border-radius:0;">
+          {{if .Barang}}
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Kode</th>
+                <th>Nama Produk</th>
+                <th>Kategori</th>
+                <th>Harga</th>
+                <th>Stok</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+            {{range $i, $b := .Barang}}
+            <tr>
+              <td class="text-muted fs-xs">{{inc $i}}</td>
+              <td><span class="badge badge-purple">{{$b.Kode}}</span></td>
+              <td style="font-weight:600;">{{$b.Nama}}</td>
+              <td>
+                {{if $b.Kategori}}
+                <span class="badge badge-blue">{{$b.Kategori}}</span>
+                {{else}}<span class="text-muted fs-xs">—</span>{{end}}
+              </td>
+              <td class="fw-bold">Rp {{formatRupiah $b.Harga}}</td>
+              <td class="fw-bold">
+                {{if le $b.Stok 5}}
+                  <span style="color:var(--accent-red);">{{$b.Stok}}</span>
+                {{else if le $b.Stok 15}}
+                  <span style="color:var(--accent-orange);">{{$b.Stok}}</span>
+                {{else}}
+                  <span style="color:var(--accent-green);">{{$b.Stok}}</span>
+                {{end}}
+              </td>
+              <td>
+                {{if le $b.Stok 5}}
+                  <span class="badge badge-red">Kritis</span>
+                {{else if le $b.Stok 15}}
+                  <span class="badge badge-orange">Low Stock</span>
+                {{else}}
+                  <span class="badge badge-green">Normal</span>
+                {{end}}
+              </td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <a href="/barang/edit?kode={{$b.Kode}}" class="btn btn-warning btn-sm">
+                    <i data-lucide="pencil"></i>
+                    Edit
+                  </a>
+                  <a href="/barang/hapus?kode={{$b.Kode}}"
+                     class="btn btn-danger btn-sm btn-icon"
+                     onclick="return confirm('Hapus barang {{$b.Nama}}?')"
+                     title="Hapus">
+                    <i data-lucide="trash-2"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {{end}}
+            </tbody>
+          </table>
+          {{else}}
+          <div class="table-empty">
+            <i data-lucide="inbox" class="table-empty-icon" style="width:40px;height:40px;"></i>
+            <p>Tidak ada barang ditemukan</p>
+            <a href="/barang/tambah" class="btn btn-primary">
+              <i data-lucide="plus"></i>
+              Tambah Barang Pertama
+            </a>
+          </div>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/js/lucide.min.js"></script>
+<script src="/static/js/sidebar.js"></script>
+<script>
+lucide.createIcons();
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+setInterval(updateClock, 1000); updateClock();
+</script>
+</body>
+</html>

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"html/template"
 	"net/http"
 	"reshier/models"
 	"reshier/utils"
@@ -86,7 +85,7 @@ func TampilkanBarang(w http.ResponseWriter, r *http.Request) {
 		StokKritis   int
 	}
 
-	tmpl, err := template.New("barang.html").Funcs(utils.TemplateFuncs).ParseFiles("views/barang.html")
+	tmpl, err := parseTemplate("barang.html", "views/barang.html")
 	if err != nil {
 		http.Error(w, "Template error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -146,7 +145,7 @@ func TambahBarang(w http.ResponseWriter, r *http.Request) {
 		}
 		http.Redirect(w, r, "/barang", http.StatusSeeOther)
 	} else {
-		tmpl, err := template.New("tambah_barang.html").Funcs(utils.TemplateFuncs).ParseFiles("views/tambah_barang.html")
+		tmpl, err := parseTemplate("tambah_barang.html", "views/tambah_barang.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -187,7 +186,7 @@ func EditBarang(w http.ResponseWriter, r *http.Request) {
 			http.NotFound(w, r)
 			return
 		}
-		tmpl, err := template.New("edit_barang.html").Funcs(utils.TemplateFuncs).ParseFiles("views/edit_barang.html")
+		tmpl, err := parseTemplate("edit_barang.html", "views/edit_barang.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

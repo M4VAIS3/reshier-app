@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kasir — Reshier</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wrapper">
+        <div class="logo-mark">SC</div>
+        <div class="logo-text">
+          <span class="logo-name">Simple Restaurant</span>
+          <span class="logo-sub">Cashier v2.0</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Menu Utama</span>
+      <a href="/" class="nav-item">
+        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+        Dashboard
+      </a>
+      <span class="nav-section-label">Inventori</span>
+      <a href="/barang" class="nav-item">
+        <i data-lucide="package" class="nav-icon"></i>
+        Data Barang
+      </a>
+      <a href="/barang/tambah" class="nav-item">
+        <i data-lucide="plus-circle" class="nav-icon"></i>
+        Tambah Barang
+      </a>
+      <span class="nav-section-label">Transaksi</span>
+      <a href="/transaksi/tambah" class="nav-item active">
+        <i data-lucide="shopping-cart" class="nav-icon"></i>
+        Kasir
+      </a>
+      <a href="/transaksi" class="nav-item">
+        <i data-lucide="list" class="nav-icon"></i>
+        Riwayat Transaksi
+      </a>
+      <span class="nav-section-label">Analitik</span>
+      <a href="/laporan" class="nav-item">
+        <i data-lucide="bar-chart-3" class="nav-icon"></i>
+        Laporan
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-clock-wrapper">
+        <i data-lucide="clock" class="sidebar-clock-icon"></i>
+        <p class="sidebar-clock" id="clock">--:--:--</p>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle Menu" aria-expanded="false">
+          <i data-lucide="menu"></i>
+        </button>
+        <div>
+          <h1 class="page-title">
+            <i data-lucide="shopping-cart" class="page-title-icon"></i>
+            Kasir — Transaksi Baru
+          </h1>
+          <p class="page-subtitle">Tambahkan item dan proses pembayaran</p>
+        </div>
+      </div>
+      <a href="/transaksi" class="btn btn-ghost">
+        <i data-lucide="arrow-left"></i>
+        Riwayat
+      </a>
+    </div>
+
+    <div class="page-content">
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+
+        <!-- Kiri: Item List -->
+        <div>
+          <div class="card fade-in mb-3">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="shopping-bag" class="card-icon"></i>
+                Item Belanja
+              </span>
+              <button type="button" id="btn-tambah-item" class="btn btn-primary btn-sm">
+                <i data-lucide="plus"></i>
+                Tambah Item
+              </button>
+            </div>
+            <div class="card-body" id="item-container" style="padding:14px;">
+              <!-- Item rows diisi JS -->
+            </div>
+          </div>
+
+          <!-- Referensi stok barang -->
+          <div class="card fade-in fade-in-delay-1">
+            <div class="card-header">
+              <span class="card-title">
+                <i data-lucide="database" class="card-icon"></i>
+                Referensi Barang
+              </span>
+              <div class="search-wrapper" style="width:220px;">
+                <span class="search-icon">
+                  <i data-lucide="search"></i>
+                </span>
+                <input type="text" id="ref-search" class="form-control search-input"
+                  placeholder="Cari barang..." style="font-size:13px;">
+              </div>
+            </div>
+            <div class="table-container" style="border:none;border-radius:0;max-height:280px;overflow-y:auto;">
+              <table>
+                <thead>
+                  <tr><th>Kode</th><th>Nama</th><th>Harga</th><th>Stok</th><th></th></tr>
+                </thead>
+                <tbody id="ref-tbody">
+                  {{range .}}
+                  <tr data-kode="{{.Kode}}" data-nama="{{.Nama}}" data-harga="{{.Harga}}" data-stok="{{.Stok}}">
+                    <td><span class="badge badge-purple">{{.Kode}}</span></td>
+                    <td style="font-weight:500;">{{.Nama}}</td>
+                    <td style="color:var(--accent-green);font-weight:600;">Rp {{.Harga}}</td>
+                    <td>
+                      {{if le .Stok 5}}
+                        <span style="color:var(--accent-red);font-weight:700;">{{.Stok}}</span>
+                      {{else}}
+                        <span style="color:var(--accent-green);">{{.Stok}}</span>
+                      {{end}}
+                    </td>
+                    <td>
+                      {{if gt .Stok 0}}
+                      <button type="button" class="btn btn-primary btn-sm btn-pilih"
+                        data-kode="{{.Kode}}" data-nama="{{.Nama}}" data-harga="{{.Harga}}" data-stok="{{.Stok}}">
+                        + Pilih
+                      </button>
+                      {{else}}
+                      <span class="badge badge-red">Habis</span>
+                      {{end}}
+                    </td>
+                  </tr>
+                  {{end}}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kanan: Summary -->
+        <div style="position:sticky;top:80px;">
+          <form method="POST" action="/transaksi/tambah" id="form-transaksi">
+            <div id="hidden-fields"></div>
+
+            <div class="card fade-in">
+              <div class="card-header">
+                <span class="card-title">
+                  <i data-lucide="wallet" class="card-icon"></i>
+                  Ringkasan Pembayaran
+                </span>
+              </div>
+              <div class="card-body">
+                <div id="summary-items" style="margin-bottom:14px;min-height:60px;">
+                  <p class="text-muted fs-sm text-center" style="padding:20px 0;">Belum ada item dipilih</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <span class="text-muted fs-sm">Subtotal</span>
+                  <span class="fw-bold" id="display-subtotal">Rp 0</span>
+                </div>
+
+                <div class="divider"></div>
+
+                <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;margin-bottom:18px;">
+                  <span>Total</span>
+                  <span class="text-green" id="display-total">Rp 0</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="bayar">Uang Diterima (Rp)</label>
+                  <input type="number" id="bayar" name="bayar" class="form-control"
+                    placeholder="0" min="0" oninput="hitungKembalian()">
+                </div>
+
+                <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:18px;">
+                  <span class="text-muted">Kembalian</span>
+                  <span class="fw-bold text-green" id="display-kembalian">Rp 0</span>
+                </div>
+
+                <button type="submit" id="btn-bayar" class="btn btn-success w-full btn-lg" disabled>
+                  <i data-lucide="check-circle"></i>
+                  Proses Pembayaran
+                </button>
+                <a href="/" class="btn btn-ghost w-full" style="margin-top:8px;text-align:center;">Batal</a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/js/lucide.min.js"></script>
+<script src="/static/js/sidebar.js"></script>
+<script>
+lucide.createIcons();
+
+// ── Qty Stepper Styles ────────────────────────────────────
+const style = document.createElement('style');
+style.textContent = `
+  .qty-stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+  .qty-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .qty-btn:hover:not(:disabled) {
+    background: var(--accent-primary);
+    color: #fff;
+  }
+  .qty-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .qty-value {
+    min-width: 36px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-left: 1.5px solid var(--border-color);
+    border-right: 1.5px solid var(--border-color);
+    line-height: 32px;
+    user-select: none;
+  }
+`;
+document.head.appendChild(style);
+// ──────────────────────────────────────────────────────────
+
+let items = [];
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+setInterval(updateClock, 1000); updateClock();
+
+function formatRp(n) {
+  return 'Rp ' + parseInt(n || 0).toLocaleString('id-ID');
+}
+
+// Inline SVG for trash icon (used in JS-generated HTML)
+const trashSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+
+function renderItems() {
+  const container = document.getElementById('item-container');
+  const hiddenFields = document.getElementById('hidden-fields');
+  const summaryDiv = document.getElementById('summary-items');
+  let total = 0;
+
+  if (items.length === 0) {
+    container.innerHTML = '<p class="text-muted fs-sm text-center" style="padding:24px;">Belum ada item. Pilih dari tabel barang atau klik "+ Tambah Item".</p>';
+    summaryDiv.innerHTML = '<p class="text-muted fs-sm text-center" style="padding:20px 0;">Belum ada item dipilih</p>';
+    hiddenFields.innerHTML = '';
+    document.getElementById('display-total').textContent = 'Rp 0';
+    document.getElementById('display-subtotal').textContent = 'Rp 0';
+    document.getElementById('btn-bayar').disabled = true;
+    return;
+  }
+
+  let html = '';
+  let hiddenHtml = '';
+  let summaryHtml = '';
+
+  items.forEach((item, i) => {
+    const subtotal = item.harga * item.jumlah;
+    total += subtotal;
+
+    html += `
+      <div style="display:grid;grid-template-columns:1fr auto 110px auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-color);">
+        <div>
+          <div style="font-weight:600;font-size:14px;">${item.nama}</div>
+          <span class="badge badge-purple" style="font-size:10px;">${item.kode}</span>
+          <div class="fs-xs text-muted">${formatRp(item.harga)} / pcs</div>
+        </div>
+        <div class="qty-stepper">
+          <button type="button" class="qty-btn qty-minus" onclick="changeQty(${i}, -1)" ${item.jumlah <= 1 ? 'disabled' : ''}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <span class="qty-value">${item.jumlah}</span>
+          <button type="button" class="qty-btn qty-plus" onclick="changeQty(${i}, 1)" ${item.jumlah >= item.stok ? 'disabled' : ''}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+        <div style="text-align:right;font-weight:700;color:var(--accent-green);">${formatRp(subtotal)}</div>
+        <button type="button" onclick="hapusItem(${i})" class="btn btn-danger btn-sm btn-icon" title="Hapus">${trashSVG}</button>
+      </div>`;
+
+    hiddenHtml += `<input type="hidden" name="kode${i}" value="${item.kode}">
+                   <input type="hidden" name="jumlah${i}" value="${item.jumlah}">`;
+
+    summaryHtml += `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+      <span class="text-muted">${item.nama} ×${item.jumlah}</span>
+      <span>${formatRp(subtotal)}</span></div>`;
+  });
+
+  container.innerHTML = html;
+  hiddenFields.innerHTML = hiddenHtml;
+  summaryDiv.innerHTML = summaryHtml;
+  document.getElementById('display-total').textContent = formatRp(total);
+  document.getElementById('display-subtotal').textContent = formatRp(total);
+  document.getElementById('btn-bayar').disabled = items.length === 0;
+  hitungKembalian();
+}
+
+function hitungKembalian() {
+  const totalText = document.getElementById('display-total').textContent.replace('Rp ', '').replace(/\./g, '');
+  const total = parseInt(totalText) || 0;
+  const bayar = parseInt(document.getElementById('bayar').value) || 0;
+  const kembalian = bayar - total;
+  const el = document.getElementById('display-kembalian');
+  el.textContent = formatRp(kembalian < 0 ? 0 : kembalian);
+  el.style.color = kembalian < 0 ? 'var(--accent-red)' : 'var(--accent-green)';
+}
+
+function addItem(kode, nama, harga, stok) {
+  const existing = items.findIndex(i => i.kode === kode);
+  if (existing !== -1) {
+    if (items[existing].jumlah < stok) items[existing].jumlah++;
+    renderItems();
+    return;
+  }
+  items.push({ kode, nama, harga: parseInt(harga), stok: parseInt(stok), jumlah: 1 });
+  renderItems();
+}
+
+function changeQty(idx, delta) {
+  const newVal = items[idx].jumlah + delta;
+  if (newVal >= 1 && newVal <= items[idx].stok) {
+    items[idx].jumlah = newVal;
+    renderItems();
+  }
+}
+
+function updateJumlah(idx, val) {
+  const v = parseInt(val);
+  if (v > 0 && v <= items[idx].stok) items[idx].jumlah = v;
+  renderItems();
+}
+
+function hapusItem(idx) {
+  items.splice(idx, 1);
+  renderItems();
+}
+
+// Pilih dari tabel referensi
+document.querySelectorAll('.btn-pilih').forEach(btn => {
+  btn.addEventListener('click', () => {
+    addItem(btn.dataset.kode, btn.dataset.nama, btn.dataset.harga, btn.dataset.stok);
+  });
+});
+
+// Tambah item manual
+document.getElementById('btn-tambah-item').addEventListener('click', () => {
+  const kode = prompt('Masukkan kode barang:');
+  if (!kode) return;
+  const row = document.querySelector(`tr[data-kode="${kode.toUpperCase()}"]`);
+  if (row) {
+    addItem(row.dataset.kode, row.dataset.nama, row.dataset.harga, row.dataset.stok);
+  } else {
+    alert('Barang dengan kode "' + kode + '" tidak ditemukan.');
+  }
+});
+
+// Filter referensi barang
+document.getElementById('ref-search').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#ref-tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+// Validasi sebelum submit
+document.getElementById('form-transaksi').addEventListener('submit', function(e) {
+  const totalText = document.getElementById('display-total').textContent.replace('Rp ', '').replace(/\./g, '');
+  const total = parseInt(totalText) || 0;
+  const bayar = parseInt(document.getElementById('bayar').value) || 0;
+  if (bayar < total) {
+    e.preventDefault();
+    alert('Uang yang diterima kurang dari total belanja!');
+    return;
+  }
+  if (items.length === 0) {
+    e.preventDefault();
+    alert('Belum ada item dalam transaksi!');
+  }
+});
+
+renderItems();
+</script>
+</body>
+</html>

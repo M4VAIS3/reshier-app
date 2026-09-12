@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Riwayat Transaksi — Reshier</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wrapper">
+        <div class="logo-mark">SC</div>
+        <div class="logo-text">
+          <span class="logo-name">Simple Restaurant</span>
+          <span class="logo-sub">Cashier v2.0</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Menu Utama</span>
+      <a href="/" class="nav-item">
+        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+        Dashboard
+      </a>
+      <span class="nav-section-label">Inventori</span>
+      <a href="/barang" class="nav-item">
+        <i data-lucide="package" class="nav-icon"></i>
+        Data Barang
+      </a>
+      <a href="/barang/tambah" class="nav-item">
+        <i data-lucide="plus-circle" class="nav-icon"></i>
+        Tambah Barang
+      </a>
+      <span class="nav-section-label">Transaksi</span>
+      <a href="/transaksi/tambah" class="nav-item">
+        <i data-lucide="shopping-cart" class="nav-icon"></i>
+        Kasir
+      </a>
+      <a href="/transaksi" class="nav-item active">
+        <i data-lucide="list" class="nav-icon"></i>
+        Riwayat Transaksi
+      </a>
+      <span class="nav-section-label">Analitik</span>
+      <a href="/laporan" class="nav-item">
+        <i data-lucide="bar-chart-3" class="nav-icon"></i>
+        Laporan
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-clock-wrapper">
+        <i data-lucide="clock" class="sidebar-clock-icon"></i>
+        <p class="sidebar-clock" id="clock">--:--:--</p>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle Menu" aria-expanded="false">
+          <i data-lucide="menu"></i>
+        </button>
+        <div>
+          <h1 class="page-title">
+            <i data-lucide="list" class="page-title-icon"></i>
+            Riwayat Transaksi
+          </h1>
+          <p class="page-subtitle">{{len .Transaksi}} transaksi ditemukan</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a href="/transaksi/tambah" class="btn btn-primary">
+          <i data-lucide="zap"></i>
+          Transaksi Baru
+        </a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Filter -->
+      <div class="card mb-3 fade-in">
+        <div class="card-body" style="padding:14px 20px;">
+          <form method="GET" action="/transaksi">
+            <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:end;">
+              <div class="form-group mb-0">
+                <div class="search-wrapper">
+                  <span class="search-icon">
+                    <i data-lucide="search"></i>
+                  </span>
+                  <input type="text" name="filter" class="form-control search-input"
+                    placeholder="Filter: 10-07-2026 / 07-2026 / 2026 / 10:30"
+                    value="{{.Filter}}">
+                </div>
+                <p class="form-hint" style="margin-top:4px;">Format: DD-MM-YYYY, MM-YYYY, YYYY, HH:MM, atau HH</p>
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i data-lucide="search"></i>
+                Cari
+              </button>
+              <a href="/transaksi" class="btn btn-ghost">
+                <i data-lucide="x"></i>
+                Reset
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {{if .Filter}}
+      <div class="alert alert-info mb-3 fade-in">
+        <i data-lucide="info"></i>
+        Menampilkan transaksi dengan filter: <strong>"{{.Filter}}"</strong>
+        — Total: <strong>Rp {{.Total}}</strong>
+      </div>
+      {{end}}
+
+      <!-- Table -->
+      <div class="card fade-in fade-in-delay-1">
+        <div class="table-container" style="border:none;border-radius:0;">
+          {{if .Transaksi}}
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ID Transaksi</th>
+                <th>Waktu</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Bayar</th>
+                <th>Kembalian</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+            {{range $i, $t := .Transaksi}}
+            <tr>
+              <td class="text-muted fs-xs">{{inc $i}}</td>
+              <td><span class="badge badge-purple">{{$t.ID}}</span></td>
+              <td class="fs-sm text-muted">{{$t.Waktu.Format "02 Jan 2006, 15:04"}}</td>
+              <td class="text-muted fs-sm">{{len $t.Items}} item</td>
+              <td class="fw-bold text-green">Rp {{formatRupiah $t.Total}}</td>
+              <td class="fw-bold">Rp {{formatRupiah $t.Bayar}}</td>
+              <td style="color:var(--accent-cyan);">Rp {{formatRupiah $t.Kembalian}}</td>
+              <td>
+                <a href="/transaksi/detail?id={{$t.ID}}" class="btn btn-ghost btn-sm">
+                  <i data-lucide="file-text"></i>
+                  Lihat Struk
+                </a>
+              </td>
+            </tr>
+            {{end}}
+            </tbody>
+          </table>
+          {{else}}
+          <div class="table-empty">
+            <i data-lucide="inbox" class="table-empty-icon" style="width:40px;height:40px;"></i>
+            <p>Belum ada transaksi</p>
+            <a href="/transaksi/tambah" class="btn btn-primary">
+              <i data-lucide="shopping-cart"></i>
+              Mulai Transaksi
+            </a>
+          </div>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/js/lucide.min.js"></script>
+<script src="/static/js/sidebar.js"></script>
+<script>
+lucide.createIcons();
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+setInterval(updateClock, 1000); updateClock();
+</script>
+</body>
+</html>

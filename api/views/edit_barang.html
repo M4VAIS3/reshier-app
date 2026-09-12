@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Barang — Reshier</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wrapper">
+        <div class="logo-mark">SC</div>
+        <div class="logo-text">
+          <span class="logo-name">Simple Restaurant</span>
+          <span class="logo-sub">Cashier v2.0</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Menu Utama</span>
+      <a href="/" class="nav-item">
+        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+        Dashboard
+      </a>
+      <span class="nav-section-label">Inventori</span>
+      <a href="/barang" class="nav-item active">
+        <i data-lucide="package" class="nav-icon"></i>
+        Data Barang
+      </a>
+      <a href="/barang/tambah" class="nav-item">
+        <i data-lucide="plus-circle" class="nav-icon"></i>
+        Tambah Barang
+      </a>
+      <span class="nav-section-label">Transaksi</span>
+      <a href="/transaksi/tambah" class="nav-item">
+        <i data-lucide="shopping-cart" class="nav-icon"></i>
+        Kasir
+      </a>
+      <a href="/transaksi" class="nav-item">
+        <i data-lucide="list" class="nav-icon"></i>
+        Riwayat Transaksi
+      </a>
+      <span class="nav-section-label">Analitik</span>
+      <a href="/laporan" class="nav-item">
+        <i data-lucide="bar-chart-3" class="nav-icon"></i>
+        Laporan
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-clock-wrapper">
+        <i data-lucide="clock" class="sidebar-clock-icon"></i>
+        <p class="sidebar-clock" id="clock">--:--:--</p>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle Menu" aria-expanded="false">
+          <i data-lucide="menu"></i>
+        </button>
+        <div>
+          <h1 class="page-title">
+            <i data-lucide="pencil" class="page-title-icon"></i>
+            Edit Barang
+          </h1>
+          <p class="page-subtitle">Perbarui informasi produk: <strong style="color:var(--accent-secondary)">{{.Kode}}</strong></p>
+        </div>
+      </div>
+      <a href="/barang" class="btn btn-ghost">
+        <i data-lucide="arrow-left"></i>
+        Kembali
+      </a>
+    </div>
+
+    <div class="page-content">
+      <div class="card fade-in" style="max-width:600px;margin:0 auto;">
+        <div class="card-header">
+          <span class="card-title">
+            <i data-lucide="clipboard-list" class="card-icon"></i>
+            Edit Informasi Produk
+          </span>
+          <span class="badge badge-purple">{{.Kode}}</span>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/barang/edit">
+            <input type="hidden" name="kode" value="{{.Kode}}">
+
+            <div class="form-group">
+              <label class="form-label">Kode Barang</label>
+              <input type="text" class="form-control" value="{{.Kode}}" disabled>
+              <p class="form-hint">Kode barang tidak dapat diubah</p>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="nama">Nama Produk <span style="color:var(--accent-red)">*</span></label>
+                <input type="text" id="nama" name="nama" class="form-control"
+                  value="{{.Nama}}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="kategori">Kategori</label>
+                <select id="kategori" name="kategori" class="form-control">
+                  <option value="">-- Pilih Kategori --</option>
+                  <option value="Makanan" {{if eq .Kategori "Makanan"}}selected{{end}}>Makanan</option>
+                  <option value="Minuman" {{if eq .Kategori "Minuman"}}selected{{end}}>Minuman</option>
+                  <option value="Snack" {{if eq .Kategori "Snack"}}selected{{end}}>Snack</option>
+                  <option value="Dessert" {{if eq .Kategori "Dessert"}}selected{{end}}>Dessert</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="harga">Harga Jual (Rp) <span style="color:var(--accent-red)">*</span></label>
+                <input type="number" id="harga" name="harga" class="form-control"
+                  value="{{.Harga}}" min="0" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="stok">Stok <span style="color:var(--accent-red)">*</span></label>
+                <input type="number" id="stok" name="stok" class="form-control"
+                  value="{{.Stok}}" min="0" required>
+                <p class="form-hint {{if le .Stok 5}}stok-kritis{{else if le .Stok 15}}stok-sedang{{else}}stok-aman{{end}}" id="stok-hint">
+                  {{if le .Stok 5}}Stok kritis!{{else if le .Stok 15}}Stok sedang{{else}}Stok aman{{end}}
+                </p>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+              <a href="/barang" class="btn btn-ghost">Batal</a>
+              <button type="submit" class="btn btn-success">
+                <i data-lucide="save"></i>
+                Simpan Perubahan
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/js/lucide.min.js"></script>
+<script src="/static/js/sidebar.js"></script>
+<script>
+lucide.createIcons();
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+setInterval(updateClock, 1000); updateClock();
+
+document.getElementById('stok').addEventListener('input', function() {
+  const v = parseInt(this.value) || 0;
+  const hint = document.getElementById('stok-hint');
+  if (v <= 5) {
+    hint.textContent = 'Stok kritis!';
+    hint.style.color = 'var(--accent-red)';
+  } else if (v <= 15) {
+    hint.textContent = 'Stok sedang';
+    hint.style.color = 'var(--accent-orange)';
+  } else {
+    hint.textContent = 'Stok aman';
+    hint.style.color = 'var(--accent-green)';
+  }
+});
+</script>
+</body>
+</html>
