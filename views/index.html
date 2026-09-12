@@ -1,249 +1,256 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard — Reshier</title>
   <meta name="description" content="Dashboard Simple Cashier App — ringkasan penjualan, stok, dan transaksi terkini">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
+
 <body>
-<div class="sidebar-overlay" id="sidebar-overlay"></div>
-<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="app-layout">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-wrapper">
-        <div class="logo-mark">SC</div>
-        <div class="logo-text">
-          <span class="logo-name">Simple Restaurant</span>
-          <span class="logo-sub">Cashier v2.0</span>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-wrapper">
+          <div class="logo-mark"><img src="/static/images/logo.png" alt="Logo"></div>
+          <div class="logo-text">
+            <span class="logo-name">Reshier</span>
+            <span class="logo-sub">Reshier App</span>
+          </div>
         </div>
       </div>
-    </div>
-    <nav class="sidebar-nav">
-      <span class="nav-section-label">Menu Utama</span>
-      <a href="/" class="nav-item active">
-        <i data-lucide="layout-dashboard" class="nav-icon"></i>
-        Dashboard
-      </a>
-      <span class="nav-section-label">Inventori</span>
-      <a href="/barang" class="nav-item">
-        <i data-lucide="package" class="nav-icon"></i>
-        Data Barang
-        {{if gt .StokKritis 0}}<span class="nav-badge">{{.StokKritis}}</span>{{end}}
-      </a>
-      <a href="/barang/tambah" class="nav-item">
-        <i data-lucide="plus-circle" class="nav-icon"></i>
-        Tambah Barang
-      </a>
-      <span class="nav-section-label">Transaksi</span>
-      <a href="/transaksi/tambah" class="nav-item">
-        <i data-lucide="shopping-cart" class="nav-icon"></i>
-        Kasir
-      </a>
-      <a href="/transaksi" class="nav-item">
-        <i data-lucide="list" class="nav-icon"></i>
-        Riwayat Transaksi
-      </a>
-      <span class="nav-section-label">Analitik</span>
-      <a href="/laporan" class="nav-item">
-        <i data-lucide="bar-chart-3" class="nav-icon"></i>
-        Laporan
-      </a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="sidebar-clock-wrapper">
-        <i data-lucide="clock" class="sidebar-clock-icon"></i>
-        <p class="sidebar-clock" id="clock">--:--:--</p>
-      </div>
-    </div>
-  </aside>
-
-  <!-- MAIN CONTENT -->
-  <main class="main-content">
-    <div class="topbar">
-      <div class="topbar-left">
-        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle Menu" aria-expanded="false">
-          <i data-lucide="menu"></i>
-        </button>
-        <div>
-          <h1 class="page-title">Dashboard</h1>
-          <p class="page-subtitle">Selamat datang — ringkasan bisnis hari ini.</p>
-        </div>
-      </div>
-      <div class="topbar-actions">
-        <a href="/transaksi/tambah" class="btn btn-primary">
-          <i data-lucide="zap"></i>
-          Transaksi Baru
+      <nav class="sidebar-nav">
+        <span class="nav-section-label">Menu Utama</span>
+        <a href="/" class="nav-item active">
+          <i data-lucide="layout-dashboard" class="nav-icon"></i>
+          Dashboard
         </a>
-      </div>
-    </div>
-
-    <div class="page-content">
-
-      <!-- Stat Cards -->
-      <div class="stats-grid">
-        <div class="stat-card fade-in stat-card--purple">
-          <div class="stat-header">
-            <span class="stat-label">Total Barang</span>
-            <div class="stat-icon-wrap stat-icon-wrap--purple">
-              <i data-lucide="package" class="stat-lucide"></i>
-            </div>
-          </div>
-          <div class="stat-value">{{.TotalBarang}}</div>
-          <div class="stat-sub">Produk terdaftar</div>
-        </div>
-
-        <div class="stat-card fade-in fade-in-delay-1 stat-card--green">
-          <div class="stat-header">
-            <span class="stat-label">Omzet Hari Ini</span>
-            <div class="stat-icon-wrap stat-icon-wrap--green">
-              <i data-lucide="trending-up" class="stat-lucide"></i>
-            </div>
-          </div>
-          <div class="stat-value" id="omzet-val" data-value="{{.OmzetHarian}}">...</div>
-          <div class="stat-sub">Total penjualan hari ini</div>
-        </div>
-
-        <div class="stat-card fade-in fade-in-delay-2 stat-card--blue">
-          <div class="stat-header">
-            <span class="stat-label">Total Transaksi</span>
-            <div class="stat-icon-wrap stat-icon-wrap--blue">
-              <i data-lucide="receipt" class="stat-lucide"></i>
-            </div>
-          </div>
-          <div class="stat-value">{{.TotalTransaksi}}</div>
-          <div class="stat-sub">Semua waktu</div>
-        </div>
-
-        <div class="stat-card fade-in fade-in-delay-3 {{if gt .StokKritis 0}}stat-card--red{{else}}stat-card--green{{end}}">
-          <div class="stat-header">
-            <span class="stat-label">Stok Kritis</span>
-            <div class="stat-icon-wrap {{if gt .StokKritis 0}}stat-icon-wrap--red{{else}}stat-icon-wrap--green{{end}}">
-              <i data-lucide="{{if gt .StokKritis 0}}triangle-alert{{else}}shield-check{{end}}" class="stat-lucide"></i>
-            </div>
-          </div>
-          <div class="stat-value {{if gt .StokKritis 0}}text-red{{else}}text-green{{end}}">{{.StokKritis}}</div>
-          <div class="stat-sub">Barang dengan stok ≤ 5</div>
+        <span class="nav-section-label">Inventori</span>
+        <a href="/barang" class="nav-item">
+          <i data-lucide="package" class="nav-icon"></i>
+          Data Barang
+          {{if gt .StokKritis 0}}<span class="nav-badge">{{.StokKritis}}</span>{{end}}
+        </a>
+        <a href="/barang/tambah" class="nav-item">
+          <i data-lucide="plus-circle" class="nav-icon"></i>
+          Tambah Barang
+        </a>
+        <span class="nav-section-label">Transaksi</span>
+        <a href="/transaksi/tambah" class="nav-item">
+          <i data-lucide="shopping-cart" class="nav-icon"></i>
+          Kasir
+        </a>
+        <a href="/transaksi" class="nav-item">
+          <i data-lucide="list" class="nav-icon"></i>
+          Riwayat Transaksi
+        </a>
+        <span class="nav-section-label">Analitik</span>
+        <a href="/laporan" class="nav-item">
+          <i data-lucide="bar-chart-3" class="nav-icon"></i>
+          Laporan
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-clock-wrapper">
+          <i data-lucide="clock" class="sidebar-clock-icon"></i>
+          <p class="sidebar-clock" id="clock">--:--:--</p>
         </div>
       </div>
+    </aside>
 
-      <!-- Alert Stok Kritis -->
-      {{if gt .StokKritis 0}}
-      <div class="alert alert-warning mb-3 fade-in">
-        <i data-lucide="triangle-alert"></i>
-        Ada <strong>{{.StokKritis}} barang</strong> dengan stok kritis (≤ 5).
-        <a href="/barang" style="color:inherit;font-weight:700;margin-left:4px;">Cek Sekarang →</a>
-      </div>
-      {{end}}
-
-      <!-- Recent Transactions -->
-      <div class="card fade-in">
-        <div class="card-header">
-          <span class="card-title">
-            <i data-lucide="clock" class="card-icon"></i>
-            Transaksi Terbaru
-          </span>
-          <a href="/transaksi" class="btn btn-ghost btn-sm">Lihat Semua →</a>
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle Menu" aria-expanded="false">
+            <i data-lucide="menu"></i>
+          </button>
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Selamat datang — ringkasan bisnis hari ini.</p>
+          </div>
         </div>
-        <div class="table-container" style="border:none;border-radius:0;">
-          {{if .TransaksiTerakhir}}
-          <table>
-            <thead>
-              <tr>
-                <th>ID Transaksi</th>
-                <th>Waktu</th>
-                <th>Items</th>
-                <th>Total</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-            {{range .TransaksiTerakhir}}
-            <tr>
-              <td><span class="badge badge-purple">{{.ID}}</span></td>
-              <td class="text-muted fs-sm">{{.Waktu.Format "02 Jan 2006, 15:04"}}</td>
-              <td class="text-muted fs-sm">{{len .Items}} item</td>
-              <td class="fw-bold text-green">Rp {{.Total}}</td>
-              <td>
-                <a href="/transaksi/detail?id={{.ID}}" class="btn btn-ghost btn-sm">
-                  <i data-lucide="file-text"></i>
-                  Lihat Struk
-                </a>
-              </td>
-            </tr>
+        <div class="topbar-actions">
+          <a href="/transaksi/tambah" class="btn btn-primary">
+            <i data-lucide="zap"></i>
+            Transaksi Baru
+          </a>
+        </div>
+      </div>
+
+      <div class="page-content">
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card fade-in stat-card--purple">
+            <div class="stat-header">
+              <span class="stat-label">Total Barang</span>
+              <div class="stat-icon-wrap stat-icon-wrap--purple">
+                <i data-lucide="package" class="stat-lucide"></i>
+              </div>
+            </div>
+            <div class="stat-value">{{.TotalBarang}}</div>
+            <div class="stat-sub">Produk terdaftar</div>
+          </div>
+
+          <div class="stat-card fade-in fade-in-delay-1 stat-card--green">
+            <div class="stat-header">
+              <span class="stat-label">Omzet Hari Ini</span>
+              <div class="stat-icon-wrap stat-icon-wrap--green">
+                <i data-lucide="trending-up" class="stat-lucide"></i>
+              </div>
+            </div>
+            <div class="stat-value" id="omzet-val" data-value="{{.OmzetHarian}}">...</div>
+            <div class="stat-sub">Total penjualan hari ini</div>
+          </div>
+
+          <div class="stat-card fade-in fade-in-delay-2 stat-card--blue">
+            <div class="stat-header">
+              <span class="stat-label">Total Transaksi</span>
+              <div class="stat-icon-wrap stat-icon-wrap--blue">
+                <i data-lucide="receipt" class="stat-lucide"></i>
+              </div>
+            </div>
+            <div class="stat-value">{{.TotalTransaksi}}</div>
+            <div class="stat-sub">Semua waktu</div>
+          </div>
+
+          <div
+            class="stat-card fade-in fade-in-delay-3 {{if gt .StokKritis 0}}stat-card--red{{else}}stat-card--green{{end}}">
+            <div class="stat-header">
+              <span class="stat-label">Stok Kritis</span>
+              <div
+                class="stat-icon-wrap {{if gt .StokKritis 0}}stat-icon-wrap--red{{else}}stat-icon-wrap--green{{end}}">
+                <i data-lucide="{{if gt .StokKritis 0}}triangle-alert{{else}}shield-check{{end}}"
+                  class="stat-lucide"></i>
+              </div>
+            </div>
+            <div class="stat-value {{if gt .StokKritis 0}}text-red{{else}}text-green{{end}}">{{.StokKritis}}</div>
+            <div class="stat-sub">Barang dengan stok ≤ 5</div>
+          </div>
+        </div>
+
+        <!-- Alert Stok Kritis -->
+        {{if gt .StokKritis 0}}
+        <div class="alert alert-warning mb-3 fade-in">
+          <i data-lucide="triangle-alert"></i>
+          Ada <strong>{{.StokKritis}} barang</strong> dengan stok kritis (≤ 5).
+          <a href="/barang" style="color:inherit;font-weight:700;margin-left:4px;">Cek Sekarang →</a>
+        </div>
+        {{end}}
+
+        <!-- Recent Transactions -->
+        <div class="card fade-in">
+          <div class="card-header">
+            <span class="card-title">
+              <i data-lucide="clock" class="card-icon"></i>
+              Transaksi Terbaru
+            </span>
+            <a href="/transaksi" class="btn btn-ghost btn-sm">Lihat Semua →</a>
+          </div>
+          <div class="table-container" style="border:none;border-radius:0;">
+            {{if .TransaksiTerakhir}}
+            <table>
+              <thead>
+                <tr>
+                  <th>ID Transaksi</th>
+                  <th>Waktu</th>
+                  <th>Items</th>
+                  <th>Total</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{range .TransaksiTerakhir}}
+                <tr>
+                  <td><span class="badge badge-purple">{{.ID}}</span></td>
+                  <td class="text-muted fs-sm">{{.Waktu.Format "02 Jan 2006, 15:04"}}</td>
+                  <td class="text-muted fs-sm">{{len .Items}} item</td>
+                  <td class="fw-bold text-green">Rp {{.Total}}</td>
+                  <td>
+                    <a href="/transaksi/detail?id={{.ID}}" class="btn btn-ghost btn-sm">
+                      <i data-lucide="file-text"></i>
+                      Lihat Struk
+                    </a>
+                  </td>
+                </tr>
+                {{end}}
+              </tbody>
+            </table>
+            {{else}}
+            <div class="table-empty">
+              <i data-lucide="shopping-bag" class="table-empty-icon" style="width:40px;height:40px;"></i>
+              <p>Belum ada transaksi hari ini.</p>
+              <a href="/transaksi/tambah" class="btn btn-primary">
+                <i data-lucide="shopping-cart"></i>
+                Mulai Transaksi
+              </a>
+            </div>
             {{end}}
-            </tbody>
-          </table>
-          {{else}}
-          <div class="table-empty">
-            <i data-lucide="shopping-bag" class="table-empty-icon" style="width:40px;height:40px;"></i>
-            <p>Belum ada transaksi hari ini.</p>
-            <a href="/transaksi/tambah" class="btn btn-primary">
-              <i data-lucide="shopping-cart"></i>
-              Mulai Transaksi
-            </a>
           </div>
-          {{end}}
         </div>
+
+        <!-- Quick Actions -->
+        <div class="grid-3 mt-3">
+          <a href="/barang/tambah" class="quick-action fade-in">
+            <div class="quick-action-icon stat-icon-wrap stat-icon-wrap--purple">
+              <i data-lucide="package-plus" style="width:18px;height:18px;"></i>
+            </div>
+            <div>
+              <div class="quick-action-title">Tambah Barang</div>
+              <div class="quick-action-sub">Daftarkan produk baru</div>
+            </div>
+          </a>
+          <a href="/transaksi/tambah" class="quick-action fade-in fade-in-delay-1">
+            <div class="quick-action-icon stat-icon-wrap stat-icon-wrap--green">
+              <i data-lucide="shopping-cart" style="width:18px;height:18px;"></i>
+            </div>
+            <div>
+              <div class="quick-action-title">Buka Kasir</div>
+              <div class="quick-action-sub">Buat transaksi penjualan baru</div>
+            </div>
+          </a>
+          <a href="/laporan" class="quick-action fade-in fade-in-delay-2">
+            <div class="quick-action-icon stat-icon-wrap stat-icon-wrap--blue">
+              <i data-lucide="bar-chart-3" style="width:18px;height:18px;"></i>
+            </div>
+            <div>
+              <div class="quick-action-title">Lihat Laporan</div>
+              <div class="quick-action-sub">Analitik omzet &amp; penjualan</div>
+            </div>
+          </a>
+        </div>
+
       </div>
+    </main>
+  </div>
 
-      <!-- Quick Actions -->
-      <div class="grid-3 mt-3">
-        <a href="/barang/tambah" class="quick-action fade-in">
-          <div class="quick-action-icon stat-icon-wrap stat-icon-wrap--purple">
-            <i data-lucide="package-plus" style="width:18px;height:18px;"></i>
-          </div>
-          <div>
-            <div class="quick-action-title">Tambah Barang</div>
-            <div class="quick-action-sub">Daftarkan produk baru</div>
-          </div>
-        </a>
-        <a href="/transaksi/tambah" class="quick-action fade-in fade-in-delay-1">
-          <div class="quick-action-icon stat-icon-wrap stat-icon-wrap--green">
-            <i data-lucide="shopping-cart" style="width:18px;height:18px;"></i>
-          </div>
-          <div>
-            <div class="quick-action-title">Buka Kasir</div>
-            <div class="quick-action-sub">Buat transaksi penjualan baru</div>
-          </div>
-        </a>
-        <a href="/laporan" class="quick-action fade-in fade-in-delay-2">
-          <div class="quick-action-icon stat-icon-wrap stat-icon-wrap--blue">
-            <i data-lucide="bar-chart-3" style="width:18px;height:18px;"></i>
-          </div>
-          <div>
-            <div class="quick-action-title">Lihat Laporan</div>
-            <div class="quick-action-sub">Analitik omzet &amp; penjualan</div>
-          </div>
-        </a>
-      </div>
+  <script src="/static/js/lucide.min.js"></script>
+  <script src="/static/js/sidebar.js"></script>
+  <script>
+    lucide.createIcons();
 
-    </div>
-  </main>
-</div>
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-<script src="/static/js/lucide.min.js"></script>
-<script src="/static/js/sidebar.js"></script>
-<script>
-lucide.createIcons();
-
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent =
-    now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-const omzetEl = document.getElementById('omzet-val');
-if (omzetEl) {
-  const val = parseInt(omzetEl.dataset.value) || 0;
-  omzetEl.textContent = 'Rp ' + val.toLocaleString('id-ID');
-}
-</script>
+    const omzetEl = document.getElementById('omzet-val');
+    if (omzetEl) {
+      const val = parseInt(omzetEl.dataset.value) || 0;
+      omzetEl.textContent = 'Rp ' + val.toLocaleString('id-ID');
+    }
+  </script>
 </body>
+
 </html>
